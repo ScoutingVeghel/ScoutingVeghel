@@ -3,14 +3,12 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . "/subm/PHPMailer/src/Exception.php";
-require __DIR__ . "/subm/PHPMailer/src/PHPMailer.php";
-require __DIR__ . '/subm/PHPMailer/src/SMTP.php';
+require "subm/PHPMailer/src/Exception.php";
+require "subm/PHPMailer/src/PHPMailer.php";
+require 'subm/PHPMailer/src/SMTP.php';
 
-$mailConfigPath = defined('MAIL_CONFIG_PATH')
-    ? MAIL_CONFIG_PATH
-    : __DIR__ . '/MAIL2.php';
-require_once $mailConfigPath;
+require_once __DIR__ . "/MAIL2.php";
+require_once __DIR__ . "/mail-log.php";
 
 /**
 * Send the mail using the environment configured SMTP settings using PHP Mailer
@@ -21,10 +19,9 @@ require_once $mailConfigPath;
 * @param $replyToMail [optional] The mail address to reply to
 * @return [bool, message]
 */
-function sendMail($toMail, $subject, $message, $replyToMail = ""){
-    global $SMTP_MAIL_FROM;
+function sendMail($toMail, $subject, $message, $replyToMail = "", $inlineImages = array()){
      // Must be the one configured at the SMTP server (e.g. Office365 mailbox) that is authenticated to sent mails
-     return sendMailWithFrom($toMail, $subject, $message, $SMTP_MAIL_FROM, $replyToMail);
+     return sendMailWithFrom($toMail, $subject, $message, null, $replyToMail, $inlineImages);
 }
 
 /**
@@ -37,14 +34,41 @@ function sendMail($toMail, $subject, $message, $replyToMail = ""){
 * @param $replyToMail The mail address to reply to
 * @return [bool, message]
 */
-function sendMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail){
-  global $SMTP_SERVER;
-  global $SMTP_PORT;
-  global $SMTP_USER;
-  global $SMTP_PASSWORD;
-  global $SMTP_AUTO_TLS;
-  global $SMTP_SECURE;
-  global $PHPMAILER_DEBUG;
+function sendMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail, $inlineImages = array()) {
+  try {
+    if ($fromMail === null) $fromMail = smtpConfiguration()['from'];
+    $result = deliverMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail, $inlineImages);
+  } catch (\Throwable $error) {
+    $result = array(false, 'Message could not be sent.');
+  }
+  try {
+    mailLogRecord($toMail, $subject, $fromMail, $message, !empty($result[0]), getenv('SV_ENV') === 'local');
+  } catch (\Throwable $error) {
+    // A log failure must not invite a duplicate application or contact message.
+    error_log('Scouting Veghel: mail log could not be written.');
+  }
+  return $result;
+}
+
+function deliverMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail, $inlineImages = array()){
+  if (getenv('SV_ENV') === 'local') {
+    $directory = getenv('SV_LOCAL_MAIL_DIR');
+    if (!$directory || !is_dir($directory) || !is_writable($directory)) {
+      return array(false, 'Local mailbox unavailable');
+    }
+    $file = $directory . '/' . gmdate('Ymd-His') . '-' . bin2hex(random_bytes(8)) . '.json';
+    $mail = json_encode(array('to' => $toMail, 'from' => $fromMail, 'reply_to' => $replyToMail,
+      'subject' => $subject, 'html' => $message, 'inline_images' => $inlineImages), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    if ($mail === false) return array(false, 'Local mail encoding failed');
+    $handle = @fopen($file, 'x');
+    if (!$handle) return array(false, 'Local mail storage failed');
+    chmod($file, 0600);
+    $saved = fwrite($handle, $mail) === strlen($mail);
+    fclose($handle);
+    return array($saved, $saved ? 'Mail saved locally; not sent' : 'Local mail storage failed');
+  }
+
+  $smtp = smtpConfiguration();
 
     //Create an instance; passing `true` enables exceptions
     $mail = new PHPMailer(true);
@@ -53,35 +77,12 @@ function sendMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail){
     try {
         //Server settings
         $mail->isSMTP();
-
-        // Enable debug output if requested (for testing)
-        $debugLevel = $PHPMAILER_DEBUG ?? 0;
-        if ($debugLevel !== false && $debugLevel !== '' && $debugLevel !== null && $debugLevel > 0) {
-            $mail->SMTPDebug = (int)$debugLevel;
-            echo "PHPMailer debug enabled, level: " . (int)$debugLevel . "\n";
-            $mail->Debugoutput = function($str, $level) {
-                echo "[PHPMailer] $str\n";
-            };
-        }
-
-        $mail->Host = $SMTP_SERVER;
-        $mail->Port = $SMTP_PORT;
+        $mail->Host = $smtp['host'];
         $mail->SMTPAuth = true;
-        $mail->Username = $SMTP_USER;
-        $mail->Password = $SMTP_PASSWORD;
-
-        // Set encryption if configured (default to STARTTLS for production)
-        if (isset($SMTP_SECURE) && $SMTP_SECURE !== false) {
-            $mail->SMTPSecure = $SMTP_SECURE;
-        } elseif (!isset($SMTP_SECURE)) {
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        }
-        // When SMTP_SECURE is explicitly false, don't set SMTPSecure at all
-
-        // Allow disabling auto-TLS for mail servers like MailHog
-        if (isset($SMTP_AUTO_TLS) && $SMTP_AUTO_TLS === false) {
-            $mail->SMTPAutoTLS = false;
-        }
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = $smtp['port'];
+        $mail->Username = $smtp['username'];
+        $mail->Password = $smtp['password'];
 
         // Must be the one configured at the SMTP server (e.g. Office365 mailbox) that is authenticated to sent mails
         $mail->setFrom($fromMail);
@@ -93,8 +94,13 @@ function sendMailWithFrom($toMail, $subject, $message, $fromMail, $replyToMail){
             $mail->addReplyTo($replyToMail);
         }
 
+        foreach ($inlineImages as $image) {
+            $mail->addEmbeddedImage($image['path'], $image['cid'], $image['name']);
+        }
+
         //Content
         $mail->isHTML(true);
+        $mail->CharSet = PHPMailer::CHARSET_UTF8;
         $mail->Subject = $subject;
         $mail->Body = $message;
 

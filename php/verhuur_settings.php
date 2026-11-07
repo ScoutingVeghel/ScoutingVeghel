@@ -15,13 +15,21 @@ define('BEDRAG_BORG_NACHT','75');
 define('BEDRAG_BORG_LANGER','300');
 
 //settings Huurovereenkosmt
-define('HV_VERHUURDER_NAME','Scouting Veghel');
-define('HV_VERHUURDER_REP','Beheerder');
-define('HV_VERHUURDER_ADDRESS','Dorshout 29');
-define('HV_VERHUURDER_POSTAL','5462 GM Veghel');
-define('HV_VERHUURDER_PHONE','0413-350260');
-define('HV_BEHEERDER','Verhuur SV');
-define('HV_BEHEERDER_PHONE','0413-350260');
-define('HV_VERHUURDER_ACCOUNT','NL69IBAN1234567890 t.n.v. Scouting Veghel');
+define('HV_VERHUURDER_NAME','Stichting Scouting Veghel');
+define('HV_VERHUURDER_REP','Marc Verbruggen (Beheerder)');
+define('HV_VERHUURDER_ADDRESS','Venkellaar 15');
+define('HV_VERHUURDER_POSTAL','5467 BT Veghel');
+define('HV_VERHUURDER_PHONE','0413-320622');
+define('HV_BEHEERDER','Marc Verbruggen');
+define('HV_BEHEERDER_PHONE','0413-320622');
+define('HV_VERHUURDER_ACCOUNT','NL58INGB0007228483 t.n.v. Stichting Scouting Veghel');
+//define('HV_VERHUURDER_NAME','Scouting Veghel');
+//define('HV_VERHUURDER_REP','Beheerder');
+//define('HV_VERHUURDER_ADDRESS','Dorshout 29');
+//define('HV_VERHUURDER_POSTAL','5462 GM Veghel');
+//define('HV_VERHUURDER_PHONE','0413-350260');
+//define('HV_BEHEERDER','Verhuur SV');
+//define('HV_BEHEERDER_PHONE','0413-350260');
+//define('HV_VERHUURDER_ACCOUNT','NL69IBAN1234567890 t.n.v. Scouting Veghel');
 
 ?>

@@ -1,0 +1,27 @@
+<?php
+
+//Settings Reservation
+define('MIN_AANTAL_PERSONEN', '20');
+define('MAX_AANTAL_PERSONEN', '60');
+define('MIN_AANTAL_UREN', '0');
+define('MAX_AANTAL_UREN', '8');
+define('MIN_AANTAL_OVERNACHTINGEN', '0');
+define('MAX_AANTAL_OVERNACHTINGEN', '14');
+define('KOSTEN_PPPN', '5.00');
+define('KOSTEN_PER_UUR', '10');
+define('NUMBER_OF_DAYS_OPTION_IS_VALID', '14');
+define('BEDRAG_BORG_DAGDEEL', '50');
+define('BEDRAG_BORG_NACHT', '75');
+define('BEDRAG_BORG_LANGER', '300');
+
+//settings Huurovereenkosmt
+define('HV_VERHUURDER_NAME', 'Stichting Scouting Veghel');
+define('HV_VERHUURDER_REP', 'Marc Verbruggen (Beheerder)');
+define('HV_VERHUURDER_ADDRESS', 'Venkellaar 15');
+define('HV_VERHUURDER_POSTAL', '5467 BT Veghel');
+define('HV_VERHUURDER_PHONE', '0413-320622');
+define('HV_BEHEERDER', 'Marc Verbruggen');
+define('HV_BEHEERDER_PHONE', '0413-320622');
+define('HV_VERHUURDER_ACCOUNT', 'NL58INGB0007228483 t.n.v. Stichting Scouting Veghel');
+
+?>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <base href="/verhuur/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verhuur | Scouting Veghel</title>
+    <link rel="stylesheet" href="/admin/assets/portal-base.css?v=20261029-groups" /><link rel="stylesheet" href="/admin/portal.css?v=20261101-layoutlog" />
+  </head>
+  <body class="admin-shell">
+    <header class="admin-header portal-header">
+      <a class="admin-brand" href="index.html"
+        ><img src="/admin/assets/logo.svg" alt="Scouting Veghel" /><span>Verhuur</span></a
+      >
+      <nav class="portal-module-nav" aria-label="Beheernavigatie" hidden>
+        <a href="manage.php?m=inbox" target="body" data-route="reserveringen" aria-current="page"
+          >Reserveringen</a
+        ><a href="manage.php?m=kalender" target="body" data-route="kalender">Kalender</a
+        ><a href="manage.php?m=search" target="body" data-route="zoeken">Zoeken</a
+        ><a href="manage.php?m=toevoegen" target="body" data-route="toevoegen">Toevoegen</a
+        ><a href="eigen-groepen.php" target="body" data-route="eigen-groepen">Eigen groepen</a
+        >
+      <a href="maillog.php" target="body" data-route="maillog" hidden>Maillog</a>
+      </nav><div class="portal-right" hidden><nav class="portal-switcher" aria-label="Portalen"><a href="/admin/" data-portal="admin" target="_top" hidden>Admin</a><a href="/verhuur/" data-portal="beheer" target="_top" aria-current="true" hidden>Verhuur</a><a href="/leden/beheer.php" data-portal="leden" target="_top" hidden>Leden</a></nav><details class="portal-user-menu"><summary><svg class="portal-user-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><span id="portal-user-name">Account</span></summary><div class="portal-user-dropdown"><p id="portal-account-name">Account</p><a href="/admin/account.php?portal=beheer" target="_top">Accountgegevens</a><a href="/admin/account.php?portal=beheer#wachtwoord" target="_top">Wachtwoord wijzigen</a><a href="/admin/?module=mfa" target="_top">Tweestapsverificatie</a><a href="/admin/logout.php" target="_top">Uitloggen</a></div></details></div>
+    </header>
+    <main class="admin-shell-main">
+      <iframe src="about:blank" name="body" title="Verhuurwerkruimte" id="admin-content"></iframe>
+    </main>
+    <footer class="admin-footer">Scouting Veghel · Verhuur en reserveringen</footer>
+    <script src="navigation.js?v=20261101-portal-navigation"></script>
+  </body>
+</html>

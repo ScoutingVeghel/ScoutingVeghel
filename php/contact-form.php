@@ -1,11 +1,12 @@
 <?php
 
-require_once("PhpMailerProxy.php");
+require_once __DIR__ . "/PhpMailerProxy.php";
+require_once __DIR__ . "/mail-html.php";
 
-$MAIL_ADDRESS_VERHUUR = 'website@scoutingveghel.nl';
+$MAIL_ADDRESS_VERHUUR = 'verhuur@scoutingveghel.nl';
 $MAIL_ADDRESS_WEBSITE = 'website@scoutingveghel.nl';
-$MAIL_ADDRESS_GEBE = 'website@scoutingveghel.nl';
-$MAIL_ADDRESS_BESTUUR = 'website@scoutingveghel.nl';
+$MAIL_ADDRESS_GEBE = 'groepsbegeleiding@scoutingveghel.nl';
+$MAIL_ADDRESS_BESTUUR = 'bestuur@scoutingveghel.nl';
 
 session_start();
 date_default_timezone_set('Europe/Paris');
@@ -17,7 +18,12 @@ if (isset($_POST["name"]) && isset($_POST["mailadr"]) && isset($_POST["whoTo"]) 
         // To see out public and private key see: https://www.google.com/recaptcha
         // Public key (front-end): 6LdOoSsUAAAAAJzkLaGujoiw3qZ3NIZ5HYhGuDjK
         // The invisible option is chosen.
-        $secret = "6LdOoSsUAAAAAIEV87V6a835sWQ77o9Fz6FsjxcU";
+        $secret = getenv('RECAPTCHA_SECRET');
+        if (!is_string($secret) || $secret === '') {
+            $contactConfig = require dirname(__DIR__, 2) . '/private/contact.php';
+            $secret = $contactConfig['recaptcha_secret'] ?? '';
+        }
+        if (!is_string($secret) || $secret === '') { http_response_code(503); echo 'Het formulier is tijdelijk niet beschikbaar.'; exit; }
 
         //get verify response data
         $verifyResponse = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret='.$secret.'&response='.$_POST['g-recaptcha-response']);
@@ -64,14 +70,18 @@ if (isset($_POST["name"]) && isset($_POST["mailadr"]) && isset($_POST["whoTo"]) 
     }
 
     $subject = "[SV-Contact]: Vraag/opmerking van: \"$naam\"";
-    $message = htmlentities($area);
+    $labels = ['gebe' => 'Groepsbegeleiding', 'verhuur' => 'Verhuur', 'bestuur' => 'Bestuur', 'sponsor' => 'Sponsoring', 'site' => 'Website'];
+    $message = mailHtmlRender('contact.groep', [
+        'naam' => $naam, 'email' => $mail, 'groep' => $labels[$who] ?? $who, 'bericht' => $area
+    ]);
+    $subject = mailHtmlSubject($message);
 
     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         header('HTTP/1.1 400 Bad Request');
         echo "Fout: E-mailadres ongeldig.";
         exit;
     }
-    else if (!sendMail($toMail, $subject, $message, $mail)[0]) {
+    else if (!sendMail($toMail, $subject, $message, $mail, siteMailInlineImages())[0]) {
         header('HTTP/1.1 400 Bad Request');
         echo "Fout: Verzenden e-mail mislukt.";
         exit;

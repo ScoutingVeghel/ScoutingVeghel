@@ -18,7 +18,7 @@
 
 # config secrets
 /php/DB2.php
-/php/database.php
+# Shared database code; deployment credentials live outside the document root.
 /php/MAIL2.php
 
 # temp files
@@ -39,3 +39,8 @@
 # release directory
 /Release
 /docs
+# Deployment-only state and settings
+/private/
+/local/
+/.env
+/.env.*
